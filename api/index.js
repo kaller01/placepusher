@@ -1,6 +1,7 @@
 const app = require("express")();
 const Push = require("../models/Push");
 const Pixel = require("../models/Pixel");
+const ObjectId = require("mongoose").Types.ObjectId;
 
 app.get("/", async (req, res) => {
     const pushes = await Push.find();
@@ -27,28 +28,16 @@ app.post("/", async (req, res) => {
 
 app.get("/:id", async (req, res) => {
     const id = req.params.id;
-    const push = await Push.findById(id);
-    const pixels = await Pixel.find({ push: id });
-    console.log(push);
-    res.json({ push, pixels });
+    if (ObjectId.isValid(id)) {
+
+        const push = await Push.findById(id);
+        const pixels = await Pixel.find({ push: id });
+        console.log(push);
+        res.json({ push, pixels });
+    } else
+        res.sendStatus(400);
 });
 
-app.get("/test", async (req, res) => {
-    const push = new Push({
-        pixels: [
-            {
-                x: 0,
-                y: 0,
-                color: "green"
-            },
-            {
-                x: 1,
-                y: 1,
-                color: "red"
-            }
-        ]
-    })
-    push.save();
-})
+
 
 module.exports = app;
