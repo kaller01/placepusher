@@ -1,0 +1,100 @@
+<style>
+    table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    td,
+    th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+
+    tr:nth-child(even) {
+        background-color: #dddddd;
+    }
+</style>
+
+<script type="module">
+    import { createApp } from 'https://unpkg.com/petite-vue?module'
+
+    createApp({
+        // exposed to all expressions
+        count: 0,
+        x: 0,
+        y: 0,
+        color: "black",
+        img: "",
+
+        list: [{
+            x: null,
+            y: null,
+            color: null
+        }],
+        // getters
+        get plusOne() {
+            return this.count + 1
+        },
+        get prettylist() {
+            return JSON.stringify(this.list, null, 4)
+        },
+        // methods
+        add() {
+            this.list.push({
+                x: null,
+                y: null,
+                color: null
+            })
+        },
+        submit() {
+            const pixels = this.list.filter(pixel => pixel.color != null);
+            console.log(pixels);
+
+            const data = {
+                pixels,
+                push: {
+                    img: this.img
+                }
+            }
+            fetch("/api", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then(res => res.json()).then(push => {
+                console.log(push);
+                window.location.replace("/push/" + push._id);
+            })
+        }
+    }).mount()
+</script>
+
+<!-- v-scope value can be omitted -->
+<div v-scope>
+    <h2>
+        Pixels <button @click="submit">CREATE PUSH</button>
+    </h2>
+
+
+    Motivational image for users: <input type="text" id="img" name="img" value="" v-model="img">
+
+    <br>
+    <br>
+    <button @click="add">Add rows</button>
+    <table>
+        <tr>
+            <th>x</th>
+            <th>y</th>
+            <th>color</th>
+        </tr>
+        <tr v-for="pixel in list">
+            <td id="x"><input type="number" value="" v-model="pixel.x"></td>
+            <td id="y"><input type="number" value="" v-model="pixel.y"></td>
+            <td id="color"><input type="text" value="" v-model="pixel.color"></td>
+        </tr>
+    </table>
+
+</div>

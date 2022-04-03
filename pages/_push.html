@@ -1,0 +1,105 @@
+<style>
+    table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    td,
+    th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+
+    tr:nth-child(even) {
+        background-color: #dddddd;
+    }
+</style>
+
+<script type="module">
+
+    import { io } from "https://cdn.socket.io/4.4.1/socket.io.esm.min.js";
+
+    const socket = io();
+
+    import { createApp } from 'https://unpkg.com/petite-vue?module'
+
+    const tmp = window.location.href.split("/")
+    const id = tmp[tmp.length - 1];
+
+    const res = await fetch("/api/" + id);
+    const data = await res.json();
+    console.log(data);
+
+    // socket.io.on(ass, (status) => {
+
+    // });
+
+    const x = document.getElementById("x");
+    const y = document.getElementById("y");
+    const color = document.getElementById("color");
+    const held = document.getElementById("held");
+    const total = document.getElementById("total");
+
+    socket.on("assigned", (data) => {
+        console.log(data);
+        x.innerHTML = data.x;
+        y.innerHTML = data.y;
+        color.innerHTML = data.color;
+    })
+
+    socket.on(id, (data) => {
+        console.log(data);
+        total.innerHTML = data.pixels;
+        held.innerHTML = data.heldpixels;
+    })
+
+
+    createApp({
+        // exposed to all expressions
+        list: data.pixels,
+        id: id,
+        img: data.push.img,
+        socket: socket,
+        // getters
+
+        get prettylist() {
+            return JSON.stringify(this.list, null, 4)
+        },
+
+        // methods
+
+        assign() {
+            console.log("SENDING SOCKET", socket)
+            this.socket.emit("assign", { id: this.id });
+        },
+        done() {
+            this.socket.emit("done", { id: this.id });
+        }
+    }).mount()
+</script>
+
+<!-- v-scope value can be omitted -->
+<h1><span id="held">null</span> pixels held of <span id="total">null</span> pixel</h1>
+<table>
+    <tr>
+        <th>x</th>
+        <th>y</th>
+        <th>color</th>
+    </tr>
+    <tr>
+        <td id="x">null</td>
+        <td id="y">null</td>
+        <td id="color">null</td>
+    </tr>
+</table>
+<div v-scope>
+    <button @click="assign">Assign pixel to me</button>
+    <button @click="done">I drawed the pixel</button>
+
+    <br>
+    Motivational image
+    <img :src="img" style="width: 90vw;">
+
+</div>
